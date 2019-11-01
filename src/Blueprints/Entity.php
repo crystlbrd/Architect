@@ -394,7 +394,7 @@ abstract class Entity
             // look inside the changelist
             return $this->Changelist[$name];
 
-        } else if ($this->isLoaded) {
+        } else if ($this->isLoaded()) {
 
             if (isset($this->Columns[$name])) {
                 // look in the entry by its column name
