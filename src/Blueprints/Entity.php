@@ -4,6 +4,7 @@
 namespace crystlbrd\Architect\Blueprints;
 
 
+use crystlbrd\Architect\Connector;
 use crystlbrd\DatabaseHandler\DatabaseHandler;
 use crystlbrd\DatabaseHandler\Entry;
 use crystlbrd\DatabaseHandler\Exceptions\EntryException;
@@ -61,6 +62,11 @@ abstract class Entity
      * @var bool saves if an entry is loaded
      */
     protected $isLoaded = false;
+
+    /**
+     * @var array saves all connected Entities (foreign keys)
+     */
+    protected $ConnectedEntries = [];
 
     /**
      * @var int error display mode
@@ -154,6 +160,9 @@ abstract class Entity
             }
         }
 
+        // parse and validate connections to other entities
+        $this->parseConnections();
+
         return true;
     }
 
@@ -204,6 +213,50 @@ abstract class Entity
         $this->isLoaded = true;
 
         return true;
+    }
+
+    protected function loadConnectedEntity($columnName)
+    {
+        if (isset($this->ConnectedEntries[$columnName])) {
+            $config = $this->ConnectedEntries[$columnName];
+
+            $Connector = new Connector($this, $config['via'], $config['type']);
+            $this->ConnectedEntries[$columnName]['connector'] = $Connector;
+        } else {
+            throw new Exception('Could not find any configurations for ' . $columnName . '!');
+        }
+    }
+
+    /**
+     * Parses and validates configured connections to other entities
+     * @throws Exception
+     */
+    protected function parseConnections(): void
+    {
+        foreach ($this->Columns as $column => $prop) {
+            if (isset($prop['connection'])) {
+                /// PARSE & VALIDATE
+
+                // Type (required)
+                if (isset($prop['connection']['type']) && in_array($prop['connection']['type'], Connector::VALID_TYPES)) {
+                    $this->ConnectedEntries[$column]['type'] = $prop['connection']['type'];
+                } else {
+                    throw new Exception('Missing type of connection for ' . $column . '!');
+                }
+
+                // Connected Entity (required)
+                if (isset($prop['connection']['via'])) {
+                    $this->ConnectedEntries[$column]['via'] = $prop['connection']['via'];
+                } else {
+                    throw new Exception('Missing reference to connected entity for ' . $column . '!');
+                }
+
+                // Alias (optional)
+                if (isset($prop['alias'])) {
+                    $this->ConnectedEntries[$column]['alias'] = $prop['alias'];
+                }
+            }
+        }
     }
 
     /**
@@ -382,6 +435,57 @@ abstract class Entity
         }
     }
 
+    public function getConnectedEntry($name)
+    {
+        if (
+            // Try to find the connection by its column name
+            ($config = $this->getConnectedEntryByColumnName($name))
+            // Try to find the connection by its alias
+            || ($config = $this->getConnectedEntryByAlias($name))
+        ) {
+            if (!isset($config['connection'])) {
+                $this->loadConnectedEntity($config['column']);
+            }
+
+            // Get the connected entit(y/ies)
+            return $config['connection']->getEntities();
+
+        } else if ($this->Mode === self::MODE_STRICT) {
+            throw new Exception('Could not find a connection on ' . $name . '!');
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Gets the configurations for a connected entry by its column name
+     * @param $column
+     * @return bool|mixed
+     */
+    public function getConnectedEntryByColumnName($column)
+    {
+        if (isset($this->ConnectedEntries[$column])) {
+            return array_merge(['column' => $column], $this->ConnectedEntries[$column]);
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Gets the configurations for a connected entry by its alias
+     * @param $alias
+     * @return bool|mixed
+     * @throws Exception
+     */
+    public function getConnectedEntryByAlias($alias)
+    {
+        if (($column = $this->getColumnNameByAlias($alias))) {
+            return $this->getConnectedEntryByColumnName($column);
+        } else {
+            return false;
+        }
+    }
+
     /**
      * Gets a value
      * @param $name
@@ -394,13 +498,18 @@ abstract class Entity
             // look inside the changelist
             return $this->Changelist[$name];
 
+        } else if (($entry = $this->getConnectedEntry($name))) {
+            // look for a connected entry
+            return $entry;
+
         } else if ($this->isLoaded()) {
+            // look inside the loaded entry
 
             if (isset($this->Columns[$name])) {
-                // look in the entry by its column name
+                // ... by its column name
                 return $this->Entry->$name;
             } else if (($columnName = $this->getColumnNameByAlias($name)) && isset($this->Columns[$columnName])) {
-                // look in the entry by its alias
+                // ... by its alias
                 return $this->Entry->$columnName;
             }
         }
