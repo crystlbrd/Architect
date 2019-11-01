@@ -10,7 +10,7 @@ use crystlbrd\DatabaseHandler\Exceptions\EntryException;
 use crystlbrd\DatabaseHandler\Table;
 use Exception;
 
-class Entity
+abstract class Entity
 {
     /*** CONFIG ***/
 
