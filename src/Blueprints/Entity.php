@@ -470,7 +470,7 @@ abstract class Entity
                 case 'n:m':
                     // load model if missing
                     if (!isset($config['model'])) {
-                        $this->ConnectedEntities[$column]['model'] = new $model($this->Connection, $this->$column);
+                        $this->ConnectedEntities[$column]['model'] = new $model($this->Connection, $this->Entry->$column);
                     }
 
                     return $this->ConnectedEntities[$column]['model'];
