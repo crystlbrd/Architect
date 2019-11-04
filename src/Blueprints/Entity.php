@@ -462,7 +462,7 @@ abstract class Entity
             || ($config = $this->getConnectedEntityByAlias($name))
         ) {
             $column = $config['column'];
-            $model = $config['model'];
+            $model = $config['to'];
 
             switch ($config['type']) {
                 case '1:1':
