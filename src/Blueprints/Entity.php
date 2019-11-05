@@ -485,6 +485,7 @@ abstract class Entity
             switch ($config['type']) {
                 case '1:1':
                 case 'n:1':
+                case 'n:m':
                     // load model if missing
                     if (!isset($config['model'])) {
                         $this->ConnectedEntities[$column]['model'] = new $model($this->Connection, $this->Entry->$column);
@@ -492,7 +493,6 @@ abstract class Entity
 
                     return $this->ConnectedEntities[$column]['model'];
                     break;
-                case 'n:m':
                 case '1:n':
                     // load list of missing
                     if (!isset($config['list'])) {
