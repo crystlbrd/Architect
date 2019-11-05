@@ -131,7 +131,7 @@ class EntityList implements Iterator, Countable
 
     protected function connect(Entity $entity)
     {
-
+        # TODO
     }
 
     /**
@@ -175,7 +175,7 @@ class EntityList implements Iterator, Countable
     }
 
     /**
-     * Filters the list and returns only the selected properties
+     * Filters the list and returns only the selected parameters
      * @param array $properties
      * @return array
      */
