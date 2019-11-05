@@ -4,6 +4,7 @@
 namespace crystlbrd\Architect\Blueprints;
 
 
+use crystlbrd\Architect\EntityList;
 use crystlbrd\DatabaseHandler\DatabaseHandler;
 use crystlbrd\DatabaseHandler\Entry;
 use crystlbrd\DatabaseHandler\Exceptions\EntryException;
@@ -408,6 +409,23 @@ abstract class Entity
     }
 
     /**
+     * Returns the value of the primary column of the current loaded entry
+     * @return Entry|null
+     * @throws Exception (only in strict mode)
+     */
+    public function getPrimaryValue()
+    {
+        if ($this->isLoaded()) {
+            $pk = $this->getPrimaryColumn();
+            return $this->Entry->$pk;
+        } else if ($this->Mode === self::MODE_STRICT) {
+            throw new Exception('Can not get primary value! No entry loaded.');
+        } else {
+            return null;
+        }
+    }
+
+    /**
      * Returns the table name
      * @return string
      */
@@ -467,7 +485,6 @@ abstract class Entity
             switch ($config['type']) {
                 case '1:1':
                 case 'n:1':
-                case 'n:m':
                     // load model if missing
                     if (!isset($config['model'])) {
                         $this->ConnectedEntities[$column]['model'] = new $model($this->Connection, $this->Entry->$column);
@@ -475,9 +492,14 @@ abstract class Entity
 
                     return $this->ConnectedEntities[$column]['model'];
                     break;
+                case 'n:m':
                 case '1:n':
-                    # TODO
-                    return false;
+                    // load list of missing
+                    if (!isset($config['list'])) {
+                        $this->ConnectedEntities[$column]['list'] = new EntityList($this->Connection, $this, $model, $config['on'], $config['type']);
+                    }
+
+                    return $this->ConnectedEntities[$column]['list'];
                     break;
                 default:
                     throw new Exception('Invalid connection type!');
