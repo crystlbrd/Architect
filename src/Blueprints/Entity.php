@@ -134,12 +134,13 @@ abstract class Entity
     /**
      * Validates the configuration
      * @param bool $throwException throw an exception if invalid?
+     * @param array $validationRules additional rules
      * @return bool
      * @throws Exception if invalid (only if activated)
      */
-    private function validateConfig(bool $throwException = false): bool
+    protected function validateConfig(bool $throwException = false, array $validationRules = []): bool
     {
-        $validations = [
+        $validations = array_merge([
             [ // Tabellenname
                 'valid' => (
                     $this->TableName !== null
@@ -155,7 +156,7 @@ abstract class Entity
                 ),
                 'msg' => 'Columns are not defined or empty!'
             ]
-        ];
+        ], $validationRules);
 
         foreach ($validations as $check) {
             if (!$check['valid']) {
@@ -237,6 +238,16 @@ abstract class Entity
                     $this->ConnectedEntities[$column]['type'] = $prop['connection']['type'];
                 } else {
                     throw new Exception('Missing type of connection for ' . $column . '!');
+                }
+
+                // On column (required for n:m connections)
+                if (
+                    $this->ConnectedEntities[$column]['type'] != 'n:m' ||
+                    $this->ConnectedEntities[$column]['type'] == 'n:m' && isset($prop['connection']['on'])
+                ) {
+                    $this->ConnectedEntities[$column]['on'] = $prop['connection']['on'];
+                } else {
+                    throw new Exception('Missing referencing column (on) of the target entity for ' . $column . '!');
                 }
 
                 // Connected Entity (required)
@@ -485,7 +496,6 @@ abstract class Entity
             switch ($config['type']) {
                 case '1:1':
                 case 'n:1':
-                case 'n:m':
                     // load model if missing
                     if (!isset($config['model'])) {
                         $this->ConnectedEntities[$column]['model'] = new $model($this->Connection, $this->Entry->$column);
@@ -500,6 +510,14 @@ abstract class Entity
                     }
 
                     return $this->ConnectedEntities[$column]['list'];
+                    break;
+                case 'n:m':
+                    // load connector if missing
+                    if (!isset($config['connector'])) {
+                        $this->ConnectedEntities[$column]['connector'] = new $model($this->Connection, $this, $config['on']);
+                    }
+
+                    return $this->ConnectedEntities[$column]['connector'];
                     break;
                 default:
                     throw new Exception('Invalid connection type!');
