@@ -45,6 +45,10 @@ abstract class Entity
         'n:m'
     ];
 
+    /// EXCEPTION CODES
+    const EXCP_ENTITY_NOT_FOUND = 1001;
+    const EXCP_CONDITIONS_TO_AMBIGUOUS = 1002;
+
     /**
      * @var DatabaseHandler
      */
@@ -273,7 +277,7 @@ abstract class Entity
         $Result = $this->Table->select([], $conditions);
         if (count($Result)) {
             if (count($Result) > 1 && $this->Mode === self::MODE_STRICT) {
-                throw new Exception('Following conditions are too ambiguous : ' . json_encode($conditions), 1);
+                throw new Exception('Following conditions are too ambiguous : ' . json_encode($conditions), self::EXCP_CONDITIONS_TO_AMBIGUOUS);
             }
 
             // get the entry from the result and return it
@@ -282,7 +286,7 @@ abstract class Entity
 
         } else {
             // no entry found
-            throw new Exception('No entries found with following conditions: ' . json_encode($conditions), 2);
+            throw new Exception('No entries found with following conditions: ' . json_encode($conditions), self::EXCP_ENTITY_NOT_FOUND);
         }
     }
 
