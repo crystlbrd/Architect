@@ -11,6 +11,13 @@ class TestModel extends Entity
     protected $TableName = 'testtable';
     protected $Columns = [
         'col1' => [],
-        'col2' => []
+        'col2' => [],
+        'refB' => [
+            'connection' => [
+                'type' => 'n:m',
+                'to' => TestConnector::class,
+                'on' => 'refA'
+            ]
+        ]
     ];
 }

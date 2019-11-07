@@ -4,6 +4,7 @@
 namespace crystlbrd\Architect\Blueprints;
 
 
+use crystlbrd\Architect\EntityList;
 use crystlbrd\DatabaseHandler\DatabaseHandler;
 use crystlbrd\DatabaseHandler\Entry;
 use crystlbrd\DatabaseHandler\Exceptions\EntryException;
@@ -133,12 +134,13 @@ abstract class Entity
     /**
      * Validates the configuration
      * @param bool $throwException throw an exception if invalid?
+     * @param array $validationRules additional rules
      * @return bool
      * @throws Exception if invalid (only if activated)
      */
-    private function validateConfig(bool $throwException = false): bool
+    protected function validateConfig(bool $throwException = false, array $validationRules = []): bool
     {
-        $validations = [
+        $validations = array_merge([
             [ // Tabellenname
                 'valid' => (
                     $this->TableName !== null
@@ -154,7 +156,7 @@ abstract class Entity
                 ),
                 'msg' => 'Columns are not defined or empty!'
             ]
-        ];
+        ], $validationRules);
 
         foreach ($validations as $check) {
             if (!$check['valid']) {
@@ -238,6 +240,13 @@ abstract class Entity
                     throw new Exception('Missing type of connection for ' . $column . '!');
                 }
 
+                // On column (required for n:m connections)
+                if ($this->ConnectedEntities[$column]['type'] == 'n:m' && isset($prop['connection']['on'])) {
+                    $this->ConnectedEntities[$column]['on'] = $prop['connection']['on'];
+                } else if ($this->ConnectedEntities[$column]['type'] == 'n:m') {
+                    throw new Exception('Missing referencing column (on) of the target entity for ' . $column . '!');
+                }
+
                 // Connected Entity (required)
                 if (isset($prop['connection']['to'])) {
                     $this->ConnectedEntities[$column]['to'] = $prop['connection']['to'];
@@ -264,7 +273,7 @@ abstract class Entity
         $Result = $this->Table->select([], $conditions);
         if (count($Result)) {
             if (count($Result) > 1 && $this->Mode === self::MODE_STRICT) {
-                throw new Exception('Following conditions are too ambiguous : ' . json_encode($conditions));
+                throw new Exception('Following conditions are too ambiguous : ' . json_encode($conditions), 1);
             }
 
             // get the entry from the result and return it
@@ -273,7 +282,7 @@ abstract class Entity
 
         } else {
             // no entry found
-            throw new Exception('No entries found with following conditions: ' . json_encode($conditions));
+            throw new Exception('No entries found with following conditions: ' . json_encode($conditions), 2);
         }
     }
 
@@ -408,6 +417,23 @@ abstract class Entity
     }
 
     /**
+     * Returns the value of the primary column of the current loaded entry
+     * @return Entry|null
+     * @throws Exception (only in strict mode)
+     */
+    public function getPrimaryValue()
+    {
+        if ($this->isLoaded()) {
+            $pk = $this->getPrimaryColumn();
+            return $this->Entry->$pk;
+        } else if ($this->Mode === self::MODE_STRICT) {
+            throw new Exception('Can not get primary value! No entry loaded.');
+        } else {
+            return null;
+        }
+    }
+
+    /**
      * Returns the table name
      * @return string
      */
@@ -467,7 +493,6 @@ abstract class Entity
             switch ($config['type']) {
                 case '1:1':
                 case 'n:1':
-                case 'n:m':
                     // load model if missing
                     if (!isset($config['model'])) {
                         $this->ConnectedEntities[$column]['model'] = new $model($this->Connection, $this->Entry->$column);
@@ -476,8 +501,20 @@ abstract class Entity
                     return $this->ConnectedEntities[$column]['model'];
                     break;
                 case '1:n':
-                    # TODO
-                    return false;
+                    // load list of missing
+                    if (!isset($config['list'])) {
+                        $this->ConnectedEntities[$column]['list'] = new EntityList($this->Connection, $this, $model, $config['on'], $config['type']);
+                    }
+
+                    return $this->ConnectedEntities[$column]['list'];
+                    break;
+                case 'n:m':
+                    // load connector if missing
+                    if (!isset($config['connector'])) {
+                        $this->ConnectedEntities[$column]['connector'] = new $model($this->Connection, $this, $config['on']);
+                    }
+
+                    return $this->ConnectedEntities[$column]['connector'];
                     break;
                 default:
                     throw new Exception('Invalid connection type!');
