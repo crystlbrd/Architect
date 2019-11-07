@@ -183,6 +183,45 @@ class ConnectorEntity extends Entity implements Iterator, Countable
         return true;
     }
 
+    /**
+     * Updates the complete list. Adds new entities and removes missing
+     * @param array $newList
+     * @return bool
+     * @throws Exception
+     */
+    public function updateList(array $newList): bool
+    {
+        $cache = [];
+
+        // add all new items
+        foreach ($newList as $newEntity) {
+            if ($newEntity instanceof Entity) {
+                // save the entity to cache
+                $cache[] = $newEntity->getPrimaryValue();
+
+                // check if the tag is not already added
+                if (!$this->has($newEntity)) {
+                    // try to add
+                    if (!$this->add($newEntity)) return false;
+                }
+            } else {
+                throw new Exception('Malformed list! Items are not entities!');
+            }
+        }
+
+        // delete all missing items
+        foreach ($this->List as $item) {
+            // check, if the item is not in the new list
+            if (!in_array($item['model']->getPrimaryValue(), $cache)) {
+                // try to remove
+                if (!$this->remove($item['model'])) return false;
+            }
+        }
+
+        // all went fine - return true
+        return true;
+    }
+
     protected function loadConnectedEntities()
     {
         // select all entities
