@@ -244,10 +244,16 @@ abstract class Entity
                     throw new Exception('Missing type of connection for ' . $column . '!');
                 }
 
-                // On column (required for n:m connections)
-                if ($this->ConnectedEntities[$column]['type'] == 'n:m' && isset($prop['connection']['on'])) {
+                // On column (required for n:m and 1:n connections)
+                if (
+                    $this->ConnectedEntities[$column]['type'] == 'n:m' or $this->ConnectedEntities[$column]['type'] == '1:n'
+                    && isset($prop['connection']['on'])
+                ) {
                     $this->ConnectedEntities[$column]['on'] = $prop['connection']['on'];
-                } else if ($this->ConnectedEntities[$column]['type'] == 'n:m') {
+                } else if (
+                    $this->ConnectedEntities[$column]['type'] == 'n:m'
+                    || $this->ConnectedEntities[$column]['type'] == '1:n'
+                ) {
                     throw new Exception('Missing referencing column (on) of the target entity for ' . $column . '!');
                 }
 
