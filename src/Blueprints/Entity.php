@@ -273,7 +273,7 @@ abstract class Entity
         $Result = $this->Table->select([], $conditions);
         if (count($Result)) {
             if (count($Result) > 1 && $this->Mode === self::MODE_STRICT) {
-                throw new Exception('Following conditions are too ambiguous : ' . json_encode($conditions));
+                throw new Exception('Following conditions are too ambiguous : ' . json_encode($conditions), 1);
             }
 
             // get the entry from the result and return it
@@ -282,7 +282,7 @@ abstract class Entity
 
         } else {
             // no entry found
-            throw new Exception('No entries found with following conditions: ' . json_encode($conditions));
+            throw new Exception('No entries found with following conditions: ' . json_encode($conditions), 2);
         }
     }
 
