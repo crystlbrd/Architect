@@ -106,7 +106,7 @@ class EntityList implements Iterator, Countable
         if ($res) {
             foreach ($res as $r) {
                 $entity = new $this->TargetClass($this->DatabaseHandler, $r->$pk);
-                $this->add($entity);
+                $this->addToList($entity);
             }
         }
     }
@@ -129,22 +129,15 @@ class EntityList implements Iterator, Countable
         $this->List[$entity->getPrimaryValue()] = $entity;
     }
 
-    protected function connect(Entity $entity)
-    {
-        # TODO
-    }
-
     /**
+     * Returns if an entity is in the list
      * @param Entity $entity
+     * @return bool
      * @throws Exception
      */
-    protected function add(Entity $entity): void
+    public function has(Entity $entity)
     {
-        $this->addToList($entity);
-
-        if ($this->Type == 'n:m') {
-            $this->connect($entity);
-        }
+        return (isset($this->List[$entity->getPrimaryValue()]));
     }
 
     /**
@@ -170,23 +163,30 @@ class EntityList implements Iterator, Countable
      * Returns the full list
      * @return array
      */
-    public function all() {
+    public function all()
+    {
         return $this->List;
     }
 
     /**
      * Filters the list and returns only the selected parameters
      * @param array $properties
+     * @param bool $flat Reduce output array to just one level (only possible with one property)
      * @return array
      */
-    public function filter(array $properties = []) {
+    public function filter(array $properties = [], bool $flat = false)
+    {
         $items = [];
         $i = 0;
 
         foreach ($this->List as $entity) {
             foreach ($properties as $prop) {
                 if (isset($entity->$prop)) {
-                    $items[$i][$prop] = $entity->$prop;
+                    if (count($properties) == 1 && $flat) {
+                        $items[] = $entity[$prop];
+                    } else {
+                        $items[$i][$prop] = $entity->$prop;
+                    }
                 }
             }
 

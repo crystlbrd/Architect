@@ -9,7 +9,7 @@ use crystlbrd\DatabaseHandler\DatabaseHandler;
 use Exception;
 use Iterator;
 
-class ConnectorEntity extends Entity implements Iterator, Countable
+abstract class ConnectorEntity extends Entity implements Iterator, Countable
 {
     /**
      * @var Entity

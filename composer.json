@@ -3,9 +3,8 @@
   "description": "Tool for describing complex data structures programmatically",
   "type": "library",
   "require": {
-    "php": ">=7.3",
-    "crystlbrd/exceptionist": "^1.1",
-    "crystlbrd/databasehandler": "^0.2.0",
+    "crystlbrd/exceptionist": "dev-master",
+    "crystlbrd/databasehandler": "dev-master",
     "ext-json": "*"
   },
   "require-dev": {
