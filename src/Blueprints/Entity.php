@@ -218,6 +218,9 @@ abstract class Entity
      */
     public function loadByEntry(Entry $Entry): bool
     {
+        // unload previous Entry
+        $this->unload();
+
         // save Entry
         $this->Entry = $Entry;
 
