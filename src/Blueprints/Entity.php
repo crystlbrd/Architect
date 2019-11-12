@@ -310,6 +310,9 @@ abstract class Entity
         // delete cache
         $this->clearChangelist();
 
+        // delete connected entities
+        $this->ConnectedEntities = [];
+
         // update status
         $this->isLoaded = false;
     }
