@@ -181,9 +181,22 @@ abstract class Entity
     /**
      * Empties changelist
      */
-    public function clearChangelist()
+    public function clearChangelist(): void
     {
         $this->Changelist = [];
+    }
+
+    /**
+     * Deletes cached instances of connected entities
+     */
+    public function unloadConnectedEntities(): void
+    {
+        foreach ($this->ConnectedEntities as $column => $config) {
+            // Unset cached connections
+            unset($this->ConnectedEntities[$column]['model']);
+            unset($this->ConnectedEntities[$column]['list']);
+            unset($this->ConnectedEntities[$column]['connector']);
+        }
     }
 
 
@@ -311,7 +324,7 @@ abstract class Entity
         $this->clearChangelist();
 
         // delete connected entities
-        $this->ConnectedEntities = [];
+        $this->unloadConnectedEntities();
 
         // update status
         $this->isLoaded = false;
