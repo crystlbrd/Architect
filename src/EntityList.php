@@ -99,7 +99,9 @@ class EntityList implements Iterator, Countable
                 $pk
             ],
             [   // WHERE
-                $this->TargetOnColumn => $this->OriginModel->getPrimaryValue()
+                'and' => [
+                    $this->TargetOnColumn => $this->OriginModel->getPrimaryValue()
+                ]
             ]
         );
 
