@@ -304,7 +304,13 @@ abstract class Entity
      */
     public function unload()
     {
+        // delete entry
         $this->Entry = null;
+
+        // delete cache
+        $this->clearChangelist();
+
+        // update status
         $this->isLoaded = false;
     }
 
