@@ -5,8 +5,8 @@
   "require": {
     "php": ">=7.3",
     "ext-json": "*",
-    "crystlbrd/exceptionist": "v1.1.0",
-    "crystlbrd/databasehandler": "v0.2.0"
+    "crystlbrd/exceptionist": "v1.1.*",
+    "crystlbrd/databasehandler": "v0.2.*"
   },
   "require-dev": {
     "phpunit/phpunit": "^8.4"
