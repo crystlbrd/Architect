@@ -256,6 +256,37 @@ abstract class ConnectorEntity extends Entity implements Iterator, Countable
     }
 
     /**
+     * Filters the list and returns only the selected parameters
+     * @param array $properties
+     * @param bool $flat Reduce output array to just one level (only possible with one property)
+     * @return array
+     */
+    public function filter(array $properties = [], bool $flat = false)
+    {
+        $items = [];
+        $i = 0;
+
+        foreach ($this->List as $item) {
+            $entity = $item['model'];
+            foreach ($properties as $prop) {
+                if (isset($entity->$prop)) {
+                    if (count($properties) == 1 && $flat) {
+                        $items[] = $entity[$prop];
+                    } else {
+                        $items[$i][$prop] = $entity->$prop;
+                    }
+                }
+            }
+
+            $i++;
+        }
+
+        return $items;
+    }
+
+    ### ITERATOR ###
+
+    /**
      * Return the current element
      * @link https://php.net/manual/en/iterator.current.php
      * @return mixed Can return any type.
@@ -310,6 +341,9 @@ abstract class ConnectorEntity extends Entity implements Iterator, Countable
     {
         $this->Pointer = 0;
     }
+
+
+    ### COUNTABLE ###
 
     /**
      * Count elements of an object
