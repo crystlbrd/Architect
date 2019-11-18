@@ -183,9 +183,9 @@ class EntityList implements Iterator, Countable
 
         foreach ($this->List as $entity) {
             foreach ($properties as $prop) {
-                if (isset($entity->$prop)) {
+                if ($entity->$prop !== null) {
                     if (count($properties) == 1 && $flat) {
-                        $items[] = $entity[$prop];
+                        $items[] = $entity->$prop;
                     } else {
                         $items[$i][$prop] = $entity->$prop;
                     }
