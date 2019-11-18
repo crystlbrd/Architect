@@ -269,7 +269,7 @@ abstract class ConnectorEntity extends Entity implements Iterator, Countable
         foreach ($this->List as $item) {
             $entity = $item['model'];
             foreach ($properties as $prop) {
-                if (isset($entity->$prop)) {
+                if ($entity->$prop != null) {
                     if (count($properties) == 1 && $flat) {
                         $items[] = $entity[$prop];
                     } else {
