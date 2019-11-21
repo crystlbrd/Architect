@@ -251,6 +251,7 @@ abstract class ConnectorEntity extends Entity implements Iterator, Countable
         $this->Filter = $filter;
 
         if ($updateList) {
+            $this->List = [];
             $this->loadConnectedEntities();
         }
     }
