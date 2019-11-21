@@ -328,7 +328,7 @@ abstract class ConnectorEntity extends Entity implements Iterator, Countable
      */
     public function valid()
     {
-        return $this->count() < $this->Pointer;
+        return ($this->Pointer < $this->count());
     }
 
     /**
