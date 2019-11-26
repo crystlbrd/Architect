@@ -210,7 +210,7 @@ class EntityList implements Iterator, Countable
         foreach ($this->List as $Entity) {
             $items[$Entity->getPrimaryValue()] = $Entity;
             foreach ($conditions as $prop => $value) {
-                if ($Entity->$prop !== $value) {
+                if ($Entity->$prop != $value) {
                     unset($items[$Entity->getPrimaryValue()]);
                     break;
                 }
