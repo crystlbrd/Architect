@@ -198,6 +198,28 @@ class EntityList implements Iterator, Countable
         return $items;
     }
 
+    /**
+     * Finds Entity by conditions. All conditions have to be true
+     * @param array $conditions
+     * @return array
+     */
+    public function find(array $conditions)
+    {
+        $items = [];
+
+        foreach ($this->List as $Entity) {
+            $items[$Entity->getPrimaryValue()] = $Entity;
+            foreach ($conditions as $prop => $value) {
+                if ($Entity->$prop !== $value) {
+                    unset($items[$Entity->getPrimaryValue()]);
+                    break;
+                }
+            }
+        }
+
+        return $items;
+    }
+
 
     /*** ITERATOR ***/
 
