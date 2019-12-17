@@ -417,7 +417,7 @@ abstract class Entity
                 return $id;
             }
         } else {
-            return false;
+            return 0;
         }
     }
 
