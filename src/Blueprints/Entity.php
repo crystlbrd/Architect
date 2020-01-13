@@ -602,6 +602,9 @@ abstract class Entity
         if (isset($this->Changelist[$name])) {
             // look inside the changelist
             return $this->Changelist[$name];
+        } else if (isset($this->Columns[$name]) && isset($this->Changelist[$this->Columns[$name]])) {
+            // changelist lookup (via column name)
+            return $this->Changelist[$this->Columns[$name]];
 
         } else if (($entity = $this->getConnectedEntity($name))) {
             // look for a connected entry
